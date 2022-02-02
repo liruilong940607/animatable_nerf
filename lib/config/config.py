@@ -1,4 +1,3 @@
-import open3d as o3d
 from . import yacs
 from .yacs import CfgNode as CN
 import argparse
