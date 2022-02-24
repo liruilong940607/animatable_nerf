@@ -97,6 +97,7 @@ cfg.test.sampler = 'default'
 cfg.test.batch_sampler = 'default'
 cfg.test.sampler_meta = CN({'min_hw': [480, 640], 'max_hw': [480, 640], 'strategy': 'origin'})
 cfg.test.frame_sampler_interval = 30
+cfg.eval_whole_img = False
 
 # trained model
 cfg.trained_model_dir = 'data/trained_model'
@@ -112,6 +113,7 @@ cfg.result_dir = 'data/result'
 # training
 cfg.training_mode = 'default'
 cfg.aninerf_animation = False
+cfg.aninerf_animation_ind = False
 cfg.init_aninerf = 'no_pretrain'
 cfg.erode_edge = True
 
@@ -119,6 +121,7 @@ cfg.erode_edge = True
 cfg.eval = False
 cfg.skip_eval = False
 cfg.test_novel_pose = False
+cfg.test_novel_ind_pose = False
 cfg.novel_pose_ni = 100
 cfg.vis_pose_sequence = False
 cfg.vis_novel_view = False
@@ -159,7 +162,7 @@ def make_cfg(args):
 
     cfg.merge_from_list(args.opts)
 
-    if cfg.aninerf_animation:
+    if cfg.aninerf_animation or cfg.aninerf_animation_ind:
         cfg.merge_from_other_cfg(cfg.aninerf_animation_cfg)
 
     if cfg.vis_pose_sequence:

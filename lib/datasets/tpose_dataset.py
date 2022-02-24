@@ -33,20 +33,29 @@ class Dataset(data.Dataset):
             test_view = cfg.test_view
         view = cfg.training_view if split == 'train' else test_view
 
-        i = cfg.begin_ith_frame
-        i_intv = cfg.frame_interval
-        ni = cfg.num_train_frame
         if cfg.test_novel_pose or cfg.aninerf_animation:
-            i = cfg.begin_ith_frame + cfg.num_train_frame * i_intv
-            ni = cfg.num_eval_frame
+            self.frame_list = np.loadtxt(
+                os.path.join(data_root, "splits/val_ood.txt"), dtype=int
+            ).tolist()  
+        elif cfg.test_novel_ind_pose or cfg.aninerf_animation_ind:
+            self.frame_list = np.loadtxt(
+                os.path.join(data_root, "splits/val_ind.txt"), dtype=int
+            ).tolist() 
+        else:
+            self.frame_list = np.loadtxt(
+                os.path.join(data_root, "splits/train.txt"), dtype=int
+            ).tolist()  
+        annots['ims'] = [annots['ims'][i] for i in self.frame_list]
 
         self.ims = np.array([
             np.array(ims_data['ims'])[view]
-            for ims_data in annots['ims'][i:i + ni * i_intv][::i_intv]
+            # for ims_data in annots['ims'][i:i + ni * i_intv][::i_intv]
+            for ims_data in annots['ims']
         ]).ravel()
         self.cam_inds = np.array([
             np.arange(len(ims_data['ims']))[view]
-            for ims_data in annots['ims'][i:i + ni * i_intv][::i_intv]
+            # for ims_data in annots['ims'][i:i + ni * i_intv][::i_intv]
+            for ims_data in annots['ims']
         ]).ravel()
         self.num_cams = len(view)
 

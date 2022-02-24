@@ -27,7 +27,7 @@ class Network(nn.Module):
         ])
         self.bw_fc = nn.Conv1d(W, 24, 1)
 
-        if cfg.aninerf_animation:
+        if cfg.aninerf_animation or cfg.aninerf_animation_ind:
             self.novel_pose_bw = BackwardBlendWeight()
 
             if 'init_aninerf' in cfg:

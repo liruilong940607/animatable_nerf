@@ -32,3 +32,12 @@ python train_net.py --cfg_file configs/aninerf_377.yaml exp_name aninerf_377_ful
 
 python train_net.py --cfg_file configs/aninerf_386.yaml exp_name aninerf_386 resume False
 python train_net.py --cfg_file configs/aninerf_386.yaml exp_name aninerf_386_full resume False aninerf_animation True init_aninerf aninerf_386
+
+
+# 
+python train_net.py --cfg_file configs/aninerf_315.yaml exp_name aninerf_315 resume False gpus "9,"
+python train_net.py --cfg_file configs/aninerf_315.yaml exp_name aninerf_315_full resume False aninerf_animation True init_aninerf aninerf_315 gpus "9,"
+python train_net.py --cfg_file configs/aninerf_315.yaml exp_name aninerf_315_full_ind resume False aninerf_animation_ind True init_aninerf aninerf_315 gpus "9,"
+
+python run.py --type evaluate --cfg_file configs/aninerf_315.yaml exp_name aninerf_315 resume True gpus "9," test.frame_sampler_interval 100
+python run.py --type evaluate --cfg_file configs/aninerf_315.yaml exp_name aninerf_315_full resume True aninerf_animation_ind True init_aninerf aninerf_315 gpus "9," test.frame_sampler_interval 20 test_novel_pose True

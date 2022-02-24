@@ -18,48 +18,82 @@ class Evaluator:
         return psnr
 
     def ssim_metric(self, rgb_pred, rgb_gt, batch):
-        mask_at_box = batch['mask_at_box'][0].detach().cpu().numpy()
-        H, W = batch['H'].item(), batch['W'].item()
-        mask_at_box = mask_at_box.reshape(H, W)
+        if cfg.eval_whole_img:
+            img_pred = rgb_pred
+            img_gt = rgb_gt
+            result_dir = os.path.join(cfg.result_dir, 'comparison')
+            os.system('mkdir -p {}'.format(result_dir))
+            frame_index = batch['frame_index'].item()
+            view_index = batch['cam_ind'].item()
+            cv2.imwrite(
+                '{}/frame{:04d}_view{:04d}.png'.format(result_dir, frame_index,
+                                                    view_index),
+                (img_pred[..., [2, 1, 0]] * 255))
+            cv2.imwrite(
+                '{}/frame{:04d}_view{:04d}_gt.png'.format(result_dir, frame_index,
+                                                        view_index),
+                (img_gt[..., [2, 1, 0]] * 255))
+            # compute the ssim
+            ssim = compare_ssim(img_pred, img_gt, multichannel=True)
+            return ssim
 
-        # convert the pixels into an image
-        img_pred = np.zeros((H, W, 3))
-        img_pred[mask_at_box] = rgb_pred
-        img_gt = np.zeros((H, W, 3))
-        img_gt[mask_at_box] = rgb_gt
+        else:
+            mask_at_box = batch['mask_at_box'][0].detach().cpu().numpy()
+            H, W = batch['H'].item(), batch['W'].item()
+            mask_at_box = mask_at_box.reshape(H, W)
 
-        orig_img_pred = img_pred.copy()
-        orig_img_gt = img_gt.copy()
+            # convert the pixels into an image
+            img_pred = np.zeros((H, W, 3))
+            img_pred[mask_at_box] = rgb_pred
+            img_gt = np.zeros((H, W, 3))
+            img_gt[mask_at_box] = rgb_gt
 
-        if 'crop_bbox' in batch:
-            img_pred = fill_image(img_pred, batch)
-            img_gt = fill_image(img_gt, batch)
+            orig_img_pred = img_pred.copy()
+            orig_img_gt = img_gt.copy()
 
-        result_dir = os.path.join(cfg.result_dir, 'comparison')
-        os.system('mkdir -p {}'.format(result_dir))
-        frame_index = batch['frame_index'].item()
-        view_index = batch['cam_ind'].item()
-        cv2.imwrite(
-            '{}/frame{:04d}_view{:04d}.png'.format(result_dir, frame_index,
-                                                   view_index),
-            (img_pred[..., [2, 1, 0]] * 255))
-        cv2.imwrite(
-            '{}/frame{:04d}_view{:04d}_gt.png'.format(result_dir, frame_index,
-                                                      view_index),
-            (img_gt[..., [2, 1, 0]] * 255))
+            if 'crop_bbox' in batch:
+                img_pred = fill_image(img_pred, batch)
+                img_gt = fill_image(img_gt, batch)
 
-        # crop the object region
-        x, y, w, h = cv2.boundingRect(mask_at_box.astype(np.uint8))
-        img_pred = orig_img_pred[y:y + h, x:x + w]
-        img_gt = orig_img_gt[y:y + h, x:x + w]
-        # compute the ssim
-        ssim = compare_ssim(img_pred, img_gt, multichannel=True)
+            result_dir = os.path.join(cfg.result_dir, 'comparison')
+            os.system('mkdir -p {}'.format(result_dir))
+            frame_index = batch['frame_index'].item()
+            view_index = batch['cam_ind'].item()
+            cv2.imwrite(
+                '{}/frame{:04d}_view{:04d}.png'.format(result_dir, frame_index,
+                                                    view_index),
+                (img_pred[..., [2, 1, 0]] * 255))
+            cv2.imwrite(
+                '{}/frame{:04d}_view{:04d}_gt.png'.format(result_dir, frame_index,
+                                                        view_index),
+                (img_gt[..., [2, 1, 0]] * 255))
 
-        return ssim
+            # crop the object region
+            x, y, w, h = cv2.boundingRect(mask_at_box.astype(np.uint8))
+            img_pred = orig_img_pred[y:y + h, x:x + w]
+            img_gt = orig_img_gt[y:y + h, x:x + w]
+            # compute the ssim
+            ssim = compare_ssim(img_pred, img_gt, multichannel=True)
+
+            return ssim
 
     def evaluate(self, output, batch):
         rgb_pred = output['rgb_map'][0].detach().cpu().numpy()
         rgb_gt = batch['rgb'][0].detach().cpu().numpy()
+
+        if cfg.eval_whole_img:
+            mask_at_box = batch['mask_at_box'][0].detach().cpu().numpy()
+            H, W = batch['H'].item(), batch['W'].item()
+            mask_at_box = mask_at_box.reshape(H, W)
+
+            # convert the pixels into an image
+            img_pred = np.zeros((H, W, 3))
+            img_pred[mask_at_box] = rgb_pred
+            img_gt = np.zeros((H, W, 3))
+            img_gt[mask_at_box] = rgb_gt
+
+            rgb_pred = img_pred
+            rgb_gt = img_gt
 
         mse = np.mean((rgb_pred - rgb_gt)**2)
         self.mse.append(mse)
