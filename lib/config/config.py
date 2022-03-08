@@ -96,7 +96,7 @@ cfg.test.epoch = -1
 cfg.test.sampler = 'default'
 cfg.test.batch_sampler = 'default'
 cfg.test.sampler_meta = CN({'min_hw': [480, 640], 'max_hw': [480, 640], 'strategy': 'origin'})
-cfg.test.frame_sampler_interval = 30
+cfg.test.frame_sampler_interval = 1
 cfg.eval_whole_img = False
 
 # trained model

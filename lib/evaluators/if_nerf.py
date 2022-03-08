@@ -21,7 +21,13 @@ class Evaluator:
         if cfg.eval_whole_img:
             img_pred = rgb_pred
             img_gt = rgb_gt
-            result_dir = os.path.join(cfg.result_dir, 'comparison')
+            if cfg.test_novel_pose:
+                result_dir = os.path.join(cfg.result_dir, 'val_ood')
+            elif cfg.test_novel_ind_pose:
+                result_dir = os.path.join(cfg.result_dir, 'val_ind')
+            else:
+                result_dir = os.path.join(cfg.result_dir, 'val_view')
+
             os.system('mkdir -p {}'.format(result_dir))
             frame_index = batch['frame_index'].item()
             view_index = batch['cam_ind'].item()

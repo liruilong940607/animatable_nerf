@@ -9,6 +9,7 @@ import cv2
 from lib.config import cfg
 from lib.utils.if_nerf import if_nerf_data_utils as if_nerf_dutils
 from plyfile import PlyData
+import math
 
 
 class Dataset(data.Dataset):
@@ -58,6 +59,15 @@ class Dataset(data.Dataset):
             for ims_data in annots['ims']
         ]).ravel()
         self.num_cams = len(view)
+
+        if split != "train":
+            eval_render_every = math.ceil(len(self.ims) / 400)
+            self.ims = self.ims[::eval_render_every]
+            self.cam_inds = self.cam_inds[::eval_render_every]
+        
+        print ("num of frames", len(self.frame_list))
+        print ("num of cameras", self.num_cams)
+        print ("num of images:", len(self.ims))
 
         self.lbs_root = os.path.join(self.data_root, 'lbs')
         joints = np.load(os.path.join(self.lbs_root, 'joints.npy'))
@@ -205,9 +215,9 @@ class Dataset(data.Dataset):
         meta = {'R': R, 'Th': Th, 'H': H, 'W': W}
         ret.update(meta)
 
-        latent_index = index // self.num_cams
-        bw_latent_index = index // self.num_cams
-        if cfg.test_novel_pose:
+        latent_index = self.frame_list.index(frame_index)
+        bw_latent_index = self.frame_list.index(frame_index)
+        if cfg.test_novel_pose or cfg.test_novel_ind_pose:
             latent_index = cfg.num_train_frame - 1
         meta = {
             'latent_index': latent_index,
